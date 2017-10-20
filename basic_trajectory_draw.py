@@ -1,7 +1,5 @@
 """
-draw Atlantic Hurricane Tracks for storms that reached Cat 4 or 5.
-part of the track for which storm is cat 4 or 5 is shown red.
-ESRI shapefile data from http://nationalatlas.gov/mld/huralll.html
+A Hurricane Trajectory-Rendering script based on examples from matplotlib
 """
 import numpy as np
 import matplotlib.pyplot as plt

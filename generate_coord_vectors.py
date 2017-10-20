@@ -1,4 +1,5 @@
-# A first crack at the data mining project. Read in hurricane data and get coordinate vectors for each unique hurricane
+# A simple script to parse atlantic_storms.csv into a plaintext list of HurricaneID -> Trajectory
+# Hurricanes with fewer than 3 trajectories are not included in the list, but are recorded elsewhere
 import sys
 
 with open(sys.argv[1], 'r') as inputFile, open(sys.argv[2], 'w') as outputFile, open(sys.argv[3], 'w') as prunedFile:
