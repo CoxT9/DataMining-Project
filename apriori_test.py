@@ -1,5 +1,4 @@
-# A simple python script to find frequent trajectories
-# First: take in vectors, for each coordinate, regionalize - find frequent 1-size regions
+
 
 import sys
 import itertools
@@ -25,18 +24,11 @@ result: x*10 + y = region #
 
 """
 REGION_DIMENSION = 20
-MIN_SUP = 90
+MIN_SUP = 50
 x_interval = 73.8/REGION_DIMENSION
 y_interval = 172.5/REGION_DIMENSION
 
-# Should be careful though. Regionalization is not the same as assigning buckets
-  
-# Take a string of the form ID,xy,xy,xy... and turn into vector
-
-
 # Next steps:
-# - Find more data
-# - Implement ordered Apriori(with suffix-prefix attachment for supersets)
 # - Look into fitness function for assoc rule
 # - Dig into dynamic region partitioning
 
@@ -81,12 +73,24 @@ def gather_new_frequent_items(resultTable, frequent_k_itemsets):
     if frequent_k_itemsets[key] >= MIN_SUP:
       final_itemsets[-1][key] = frequent_k_itemsets[key] 
 
-def timeseries_candidate_generation(frequent_k_itemsets):
+def timeseries_candidate_generation(frequent_k_itemsets, chunk_size):
   # We have our L_k, use suffix-prefix to get C_k+1
-  x = sorted(frequent_k_itemsets, key=lambda k: (k[1], k[0]))
-  for item in x:
-    print item
-  return []
+  candidates = []
+  for curr_index, curr in enumerate(frequent_k_itemsets):
+    for compare_index, compare in enumerate(frequent_k_itemsets):
+
+      # if last chunk size of item equal to first chunksize of item2, add to cands
+      if curr_index != compare_index and curr[(chunk_size*-1):] == compare[:chunk_size]:
+        # we found a possible candidate but we need to do a prune check using frequent_k_itemsets
+        new_candidate = join_entries(curr, compare, chunk_size)
+        required_itemset_checks = itertools.combinations(new_candidate, chunk_size+1)
+        if all(item == curr or item == compare or item in frequent_k_itemsets for item in required_itemset_checks):
+          candidates.append(new_candidate)
+
+  return candidates
+
+def join_entries(left, right, chunk_size):
+  return left + right[chunk_size:]
 
 with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
   level = 1
@@ -112,15 +116,11 @@ with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
 
       # generate candidates for next level here. Cand generation is a little different for first round
       candidate_itemsets = list(itertools.permutations(final_itemsets[0], 2))
-      print len(final_itemsets[-1].keys())
+      print len(final_itemsets[-1].keys()), "Number of Frequent k itemsets"
       level += 1
 
     else: # cand gen/prune
-      # we are given C_k, prune, read table, add L_k+1 to final result, generate C_k+1, incr level
-
-      # if we are past level 2, we can prune the candidate list
-      if level != 2:
-        print "prune..."
+      # we are given C_k, , read table, add L_k to final result, generate/prune C_k+1, incr level
 
       for line in vectors:
         coords = gatherCoordinateList(line)
@@ -131,14 +131,18 @@ with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
             safe_increment(freqs, cand)
 
       gather_new_frequent_items(final_itemsets, freqs)
-      print len(final_itemsets[-1].keys())
-      level += 1
-      # use freqs 
+      print len(final_itemsets[-1].keys()), "Number of Frequent k itemsets"
 
-      # use prefix-suffix to generate C_k+1 (next level will do the pruning)
-      candidate_itemsets = timeseries_candidate_generation(final_itemsets[-1].keys())
+      # use prefix-suffix to generate and prune C_k+1 (next level will do the pruning)
+      candidate_itemsets = timeseries_candidate_generation(final_itemsets[-1].keys(), level-1)
+      print len(candidate_itemsets), "Number of level k+1 Candidates"
+      level += 1
 
     vectors.seek(0)
+
+  for level in final_itemsets:
+    for itemset in level:
+      patterns.write(str(itemset) + " : " + str(level[itemset]) + "\n")
 
 
 
