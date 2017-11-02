@@ -2,6 +2,8 @@
 # First: take in vectors, for each coordinate, regionalize - find frequent 1-size regions
 
 import sys
+import itertools
+import time
 
 # Need to dedupe raw vectors
 
@@ -23,12 +25,12 @@ result: x*10 + y = region #
 
 """
 REGION_DIMENSION = 20
-MIN_SUP = 500
+MIN_SUP = 90
 x_interval = 73.8/REGION_DIMENSION
 y_interval = 172.5/REGION_DIMENSION
 
 # Should be careful though. Regionalization is not the same as assigning buckets
-
+  
 # Take a string of the form ID,xy,xy,xy... and turn into vector
 
 
@@ -65,25 +67,78 @@ def regionalize(coordinate):
     y_region -= 1
 
   return x_region*REGION_DIMENSION + y_region
-freqs = {}
 
-with open(sys.argv[1], 'r') as vectors:
-  for line in vectors:
-    coords = gatherCoordinateList(line)
-    for co in coords:
-      region = regionalize(co)
-      try:
-        freqs[region] += 1
-      except KeyError:
-        freqs[region] = 1
 
-num_freqs = 0
-for key in freqs:
-  if freqs[key] >= MIN_SUP:
-    print "frequent!"
-    num_freqs += 1
-    print key, freqs[key]
+def safe_increment(table, key, value=1):
+  try:
+    table[key] += value
+  except KeyError:
+    table[key] = value
 
-print num_freqs
+def gather_new_frequent_items(resultTable, frequent_k_itemsets):
+  final_itemsets.append({})
+  for key in frequent_k_itemsets:
+    if frequent_k_itemsets[key] >= MIN_SUP:
+      final_itemsets[-1][key] = frequent_k_itemsets[key] 
 
-print max(freqs.values())
+def timeseries_candidate_generation(frequent_k_itemsets):
+  # We have our L_k, use suffix-prefix to get C_k+1
+  x = sorted(frequent_k_itemsets, key=lambda k: (k[1], k[0]))
+  for item in x:
+    print item
+  return []
+
+with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
+  level = 1
+  candidate_itemsets = [] # Store C_k before pruning/reading
+  final_itemsets = [] # For each level, dict of itemsets
+
+  while level == 1 or len(candidate_itemsets) >= level+1:
+    freqs = {}
+    # On each level, do the following:
+    # - candidate generation
+    # - prune
+    # - actually scan
+    print "Level %d" % level
+    if level == 1: # level 1, just build singletons with basic scan
+      for line in vectors:
+        coords = gatherCoordinateList(line)
+        for co in coords:
+          region = regionalize(co)
+          safe_increment(freqs, region)
+
+      # we have all the singletons. Gather the frequent ones
+      gather_new_frequent_items(final_itemsets, freqs)
+
+      # generate candidates for next level here. Cand generation is a little different for first round
+      candidate_itemsets = list(itertools.permutations(final_itemsets[0], 2))
+      print len(final_itemsets[-1].keys())
+      level += 1
+
+    else: # cand gen/prune
+      # we are given C_k, prune, read table, add L_k+1 to final result, generate C_k+1, incr level
+
+      # if we are past level 2, we can prune the candidate list
+      if level != 2:
+        print "prune..."
+
+      for line in vectors:
+        coords = gatherCoordinateList(line)
+        regions = [regionalize(co) for co in coords]
+        # update counts of candidates we find
+        for cand in candidate_itemsets:
+          if set(cand).issubset(regions):
+            safe_increment(freqs, cand)
+
+      gather_new_frequent_items(final_itemsets, freqs)
+      print len(final_itemsets[-1].keys())
+      level += 1
+      # use freqs 
+
+      # use prefix-suffix to generate C_k+1 (next level will do the pruning)
+      candidate_itemsets = timeseries_candidate_generation(final_itemsets[-1].keys())
+
+    vectors.seek(0)
+
+
+
