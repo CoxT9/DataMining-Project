@@ -6,4 +6,4 @@ Accuracy improvement strategies to be evaluated include:
 - Best-Rule-Fit function which accounts for absence of matching rule (closest fit)
 - Finer-grained trajectory prediction by partitioning regions using KD-Trees
 
-Project members: Jasmine Bissonnette, Caden Marofke, Taylor Cox
+Project members: Jasmin Bissonnette, Caden Marofke, Taylor Cox
