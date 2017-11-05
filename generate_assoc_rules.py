@@ -5,14 +5,14 @@
 
 import sys
 
+MIN_CONF = 0.25
+
 def getRawRules(itemset):
   divider = len(itemset) - 1
   rules = [] # Antecedent, Consequent pairs
   while divider > 0:
     antecedent = itemset[0:divider]
     consequent = itemset[divider:]
-    print antecedent
-    print consequent
     rules.append( (antecedent, consequent) )
     divider -= 1
 
@@ -25,6 +25,14 @@ def convertToSearchLine(antecedentArray):
     line = "(" + ", ".join(map(str, antecedentArray)) + ")"
 
   return line
+
+def getAntecedentSupport(itemsetsFile, searchLine):
+  with open(itemsetsFile, "r") as itemsets:
+    for line in itemsets:
+      contents = line.split(":")
+      if contents[0].strip() == searchLine:
+        result = int(contents[1].strip())
+        return result
 
 def generateRules(itemsetsFile, currItemsetLine): # String line of form (t, t, t) : s
   generatedRules = []
@@ -46,9 +54,28 @@ def generateRules(itemsetsFile, currItemsetLine): # String line of form (t, t, t
     searchLine = convertToSearchLine(rule[0])
     # Do a search in the file for the corresponding frequent itemset, and get its support
     # That gives the confidence of the rule to be inserted
+    antecedentSupport = getAntecedentSupport(itemsetsFile, searchLine)
 
+    conf = float(currItemsetSupport) / float(antecedentSupport)
+    if conf >= MIN_CONF:
+      generatedRules.append( (rule[0], rule[1], conf) )
+
+  return generatedRules
+
+totalRules = 0
 with open(sys.argv[1], 'r') as itemsets, open(sys.argv[2], 'w') as rules:
   for line in itemsets:
     if line[0] == "(":
-      print generateRules(itemsets, line)
-      break
+      currRules = generateRules(sys.argv[1], line)
+      totalRules += len(currRules)
+      for rule in currRules:
+        rules.write(
+          str((rule[0])) + 
+          " => " + 
+          str((rule[1])) + 
+          " : " + 
+          str(round(rule[2], 2)) +
+          "\n"
+        )
+
+print "Total rules generated:", totalRules
