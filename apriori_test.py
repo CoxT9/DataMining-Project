@@ -1,5 +1,5 @@
 
-
+from apriori_utils import *
 import sys
 import itertools
 import time
@@ -23,49 +23,9 @@ result: x*10 + y = region #
 
 
 """
-REGION_DIMENSION = 20
 MIN_SUP = 50
-x_interval = 73.8/REGION_DIMENSION
-y_interval = 172.5/REGION_DIMENSION
 
-# Next steps:
-# - Look into fitness function for assoc rule
-# - Dig into dynamic region partitioning
-
-def gatherCoordinateList(inputStr):
-  parseStr = inputStr.split(' ')[1]
-  if parseStr[-1] == ',':
-    parseStr = parseStr[:-1]
-
-  result = []
-  parseStr = parseStr.strip()
-
-  for vecStr in parseStr.split(','):
-    if len(vecStr):
-      currVec = vecStr.replace('(', '').replace(')', '').split(':')
-      result.append( (float(currVec[0]), float(currVec[1])) )
-
-  return result
-
-def regionalize(coordinate):
-
-  x_region = int(coordinate[0] / x_interval)
-  y_region = int(coordinate[1] / y_interval)
-
-  if coordinate[0] % x_interval == 0:
-    x_region -= 1
-
-  if coordinate[1] % y_interval == 0:
-    y_region -= 1
-
-  return x_region*REGION_DIMENSION + y_region
-
-
-def safe_increment(table, key, value=1):
-  try:
-    table[key] += value
-  except KeyError:
-    table[key] = value
+# region and safe_incr code moved to util file
 
 def gather_new_frequent_items(resultTable, frequent_k_itemsets):
   final_itemsets.append({})
@@ -106,9 +66,8 @@ with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
     print "Level %d" % level
     if level == 1: # level 1, just build singletons with basic scan
       for line in vectors:
-        coords = gatherCoordinateList(line)
-        for co in coords:
-          region = regionalize(co)
+        regions = gatherDedupedRegionList(line)
+        for region in regions:
           safe_increment(freqs, region)
 
       # we have all the singletons. Gather the frequent ones
@@ -123,8 +82,7 @@ with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
       # we are given C_k, , read table, add L_k to final result, generate/prune C_k+1, incr level
 
       for line in vectors:
-        coords = gatherCoordinateList(line)
-        regions = [regionalize(co) for co in coords]
+        regions = gatherDedupedRegionList(line)
         # update counts of candidates we find
         for cand in candidate_itemsets:
           if set(cand).issubset(regions):
