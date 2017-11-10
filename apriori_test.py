@@ -66,9 +66,8 @@ with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
     print "Level %d" % level
     if level == 1: # level 1, just build singletons with basic scan
       for line in vectors:
-        coords = gatherCoordinateList(line)
-        for co in coords:
-          region = regionalize(co)
+        regions = gatherDedupedRegionList(line)
+        for region in regions:
           safe_increment(freqs, region)
 
       # we have all the singletons. Gather the frequent ones
@@ -83,8 +82,7 @@ with open(sys.argv[1], 'r') as vectors, open(sys.argv[2], 'w') as patterns:
       # we are given C_k, , read table, add L_k to final result, generate/prune C_k+1, incr level
 
       for line in vectors:
-        coords = gatherCoordinateList(line)
-        regions = [regionalize(co) for co in coords]
+        regions = gatherDedupedRegionList(line)
         # update counts of candidates we find
         for cand in candidate_itemsets:
           if set(cand).issubset(regions):

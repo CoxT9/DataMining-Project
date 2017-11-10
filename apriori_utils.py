@@ -30,6 +30,23 @@ def regionalize(coordinate):
 
   return x_region*REGION_DIMENSION + y_region
 
+def gatherDedupedRegionList(ruleLine):
+  coordinates = gatherCoordinateList(ruleLine)
+  regionList = [regionalize(coord) for coord in coordinates]
+
+  dedupedRegions = []
+  dedupedRegions.append(regionList[0])
+
+  foundItem = regionList[0]
+  i = 0
+
+  while i < len(regionList):
+    if regionList[i] != foundItem:
+      foundItem = regionList[i]
+      dedupedRegions.append(regionList[i])
+    i += 1
+
+  return dedupedRegions
 
 def safe_increment(table, key, value=1):
   try:
