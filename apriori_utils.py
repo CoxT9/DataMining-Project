@@ -15,33 +15,47 @@ def gatherCoordinateList(inputStr):
 
 def regionalize(coordinate):
 
-  REGION_DIMENSION = 20
-  x_interval = 73.8/REGION_DIMENSION
-  y_interval = 172.5/REGION_DIMENSION
+  # Latitude is counted as degrees N/S of equator => y coords
+  # Longitude is counted as degrees W/E of meridian => x coords
+  LATITUDE_DIVISIONS = 11
+  LONGITUDE_DIVISIONS = 18
 
-  x_region = int(coordinate[0] / x_interval)
-  y_region = int(coordinate[1] / y_interval)
+  LAT_MAX_DEGREES = 50.0
+  LAT_MIN_DEGREES = 0.0
+  LONG_MAX_DEGREES = 100.0
+  LONG_MIN_DEGREES = 20.0
 
-  if coordinate[0] % x_interval == 0:
-    x_region -= 1
+  lat_interval = (LAT_MAX_DEGREES - LAT_MIN_DEGREES) / LATITUDE_DIVISIONS
+  long_interval = (LONG_MAX_DEGREES - LONG_MIN_DEGREES) / LONGITUDE_DIVISIONS
 
-  if coordinate[1] % y_interval == 0:
-    y_region -= 1
+  lat_region = int( (coordinate[0] - LAT_MIN_DEGREES) / lat_interval)
+  # long coords are negative, and go from [100 - 20], so have to reverse
+  long_region = LONGITUDE_DIVISIONS - int( (-coordinate[1] - LONG_MIN_DEGREES) / long_interval)
 
-  return x_region*REGION_DIMENSION + y_region
+  # TODO: remove this once we have bounds checking for data
+  if lat_region < 0 or lat_region > LATITUDE_DIVISIONS:
+    # TODO: it's out of our bounds, for now remove it
+    lat_region = -1
+  if long_region < 0 or long_region > LONGITUDE_DIVISIONS:
+    # TODO: it's out of our bounds, for now remove it
+    long_region = -1
+
+  return long_region * LONGITUDE_DIVISIONS + lat_region
 
 def gatherDedupedRegionList(ruleLine):
   coordinates = gatherCoordinateList(ruleLine)
   regionList = [regionalize(coord) for coord in coordinates]
 
   dedupedRegions = []
-  dedupedRegions.append(regionList[0])
-
-  foundItem = regionList[0]
+  # TODO: change this once we have bounds checking for data
   i = 0
+  while i < len(regionList) and regionList[i] < 0:
+    i += 1
+  dedupedRegions.append(regionList[i])
+  foundItem = regionList[i]
 
   while i < len(regionList):
-    if regionList[i] != foundItem:
+    if regionList[i] != foundItem and regionList[i] >= 0:
       foundItem = regionList[i]
       dedupedRegions.append(regionList[i])
     i += 1
