@@ -58,7 +58,7 @@ def getMatchingLen(antecedent, checkRegions):
 
   return maxLen
 
-def strToArray(arrayString): # Some hacky parsing
+def strToArray(arrayString):
   result = arrayString.replace("'", "").replace("[", "").replace("]", "").split(",")
   return result
 
@@ -154,7 +154,6 @@ def getExtrapolatedRegion(coordinateList, checkRegions, searchRounds):
 
 def characteristicCoordinate(region):
   # Get the coordinate that would be at the center of this region
-
   # lat, N/S, y, 0
   # lon, W/E, x, 1 (negative)
 
@@ -165,6 +164,43 @@ def characteristicCoordinate(region):
   latitude = (region % LATITUDE_DIVISIONS)*lat_interval
   return (latitude, longtitude)
 
+def getCoordCriteriaMatch(currCoord, currCoordList, compareCoordList, currCoordIndex):
+  # Get the index of first coordinate in compareCoordList that is within distance with currCoord and has similar bearing (use both lists for bearing)
+  resultIndex = -1
+  i = 0
+
+  while i < len(compareCoordList) and resultIndex == -1:
+    if coordsMatchCriteria(currCoord, compareCoordList[i], currCoordList, compareCoordList, currCoordIndex, i):
+      resultIndex = i
+    i += 1
+  return resultIndex
+
+def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, leftIndex, rightIndex):
+  # See if the two coordinates are within threshold distance and bearing difference
+  # These constants are subject to change wrt experiments
+  maxDistanceDiff = 350
+  maxBearingDiff = 30
+  match = False
+  # First, check distance comparison
+  distance = getLatLongDistance(leftCoord, rightCoord)
+  if distance < maxDistanceDiff:
+    # Distance within max. Check bearing difference
+    # Only consider bearing when both coordLists are greater than 1
+    if len(leftCoordList) == 1 or len(rightCoordList) == 1:
+      match = True
+    else:
+      leftBearing = getFinalBearing(leftCoord, leftCoordList[leftIndex+1]) \
+      if leftIndex < len(leftCoordList)-1 else \
+      getFinalBearing(leftCoordList[leftIndex-1], leftCoord)
+
+      rightBearing = getFinalBearing(rightCoord, rightCoord[leftIndex+1]) \
+      if rightIndex < len(rightCoordList)-1 else \
+      getFinalBearing(rightCoordList[rightIndex-1], rightCoord)
+
+      match = abs(leftBearing, rightBearing) <= maxBearingDiff
+
+  return match
+
 def compareResults(bestRuleConsequent, confirmRegions):
   # Compare two lists of regions. 
   # If the two region lists have a small distance and similar bearing, the prediction is correct
@@ -174,10 +210,40 @@ def compareResults(bestRuleConsequent, confirmRegions):
   confirmCoordinates = map(characteristicCoordinate, [int(region) for region in confirmRegions])
 
   # Longest Congruent Subsequence of region pairs with similar bearing within certain distance. If meets minimum, consider correct
-  # This feels like vector norms or eigenvectors
+  # This is a lot like getMatchingLen except with fuzzier criteria
 
-  # For now, use original metric as placeholder
-  return getMatchingLen(bestRuleConsequent, confirmRegions) > 0
+  shorterLen = min(len(conseqCoordinates), len(confirmCoordinates))
+  minMatchLen = shorterLen
+
+  maxLen = 0
+
+  i = 0
+  j = 0
+  while i < len(confirmCoordinates):
+    currLen = 0
+    currCoord = confirmCoordinates[i]
+    index = getCoordCriteriaMatch(currCoord, confirmCoordinates, conseqCoordinates, i)
+    if index > -1:
+      j = i
+
+      while j < len(confirmRegions) and index < len(conseqCoordinates) and \
+      coordsMatchCriteria(
+        confirmCoordinates[j], 
+        conseqCoordinates[index], 
+        confirmCoordinates, 
+        conseqCoordinates,
+        j, 
+        index,
+      ):
+        j += 1
+        index += 1
+        currLen += 1
+
+    if currLen > maxLen:
+      maxLen = currLen
+    i += 1
+
+  return maxLen >= minMatchLen
 
 with open(sys.argv[1], 'r') as test_vectors, open(sys.argv[2], 'r') as rules:
   correctCount = 0
@@ -215,7 +281,6 @@ with open(sys.argv[1], 'r') as test_vectors, open(sys.argv[2], 'r') as rules:
     print "The actual final regions of the current trajectory is:"
     print confirmRegions
 
-    # Check if we were right (this will change)
     predictionWithinRange = compareResults(bestRuleConsequent, confirmRegions)
 
     if predictionWithinRange:
