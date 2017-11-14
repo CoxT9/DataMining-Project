@@ -1,3 +1,11 @@
+LATITUDE_DIVISIONS = 11
+LONGITUDE_DIVISIONS = 18
+
+LAT_MAX_DEGREES = 50.0
+LAT_MIN_DEGREES = 0.0
+LONG_MAX_DEGREES = 100.0
+LONG_MIN_DEGREES = 20.0
+
 def gatherCoordinateList(inputStr):
   parseStr = inputStr.split(' ')[1]
   if parseStr[-1] == ',':
@@ -17,13 +25,6 @@ def regionalize(coordinate):
 
   # Latitude is counted as degrees N/S of equator => y coords
   # Longitude is counted as degrees W/E of meridian => x coords
-  LATITUDE_DIVISIONS = 11
-  LONGITUDE_DIVISIONS = 18
-
-  LAT_MAX_DEGREES = 50.0
-  LAT_MIN_DEGREES = 0.0
-  LONG_MAX_DEGREES = 100.0
-  LONG_MIN_DEGREES = 20.0
 
   lat_interval = (LAT_MAX_DEGREES - LAT_MIN_DEGREES) / LATITUDE_DIVISIONS
   long_interval = (LONG_MAX_DEGREES - LONG_MIN_DEGREES) / LONGITUDE_DIVISIONS
