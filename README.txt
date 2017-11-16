@@ -22,7 +22,6 @@ $ python test_best_fit.py rules.txt vectors_testing.txt > results.txt
 Other scripts in this repository:
 - apirori_utils.py: Utility methods and constants
 
-
 - basic_trajectory_draw.py: A simple script for drawing hurricane trajectories on a map of the atlantic coast.
 - find_data_extrema.py: A simple script to find the northernmost, southernmost, easternmost and westernmost points from a given coordinate file.
 (use vectors_training.txt or vectors_testing.txt as input for either script)
