@@ -13,31 +13,41 @@ def gatherCoordinateList(inputStr):
 
   return result
 
-
-
 import sys
 
-minX = 1000000000
-minY = 1000000000
+def get_extrema():
+  minX = 1000000000
+  minY = 1000000000
 
-maxX = 0
-maxY = 0
+  maxX = 0
+  maxY = 0
 
-with open(sys.argv[1], 'r') as vectors:
-  for line in vectors:
-    coords = gatherCoordinateList(line)
-    for co in coords:
-      if co[0] < minX:
-        minX = co[0]
+  with open(sys.argv[1], 'r') as vectors:
+    for line in vectors:
+      coords = gatherCoordinateList(line)
+      for co in coords:
+        if co[0] < minX:
+          minX = co[0]
 
-      if co[0] > maxX:
-        maxX = co[0]
+        if co[0] > maxX:
+          maxX = co[0]
 
-      if co[1] < minY:
-        minY = co[1]
+        if co[1] < minY:
+          minY = co[1]
 
-      if co[1] > maxY:
-        maxY = co[1]
+        if co[1] > maxY:
+          maxY = co[1]
 
-print minX, maxX, minY, maxY
-print maxX - minX, maxY - minY
+  print minX, maxX, minY, maxY
+  print maxX - minX, maxY - minY
+
+def main():
+  if len(sys.argv) != 2:
+    print "Usage: {0} <VectorsInput>".format(sys.argv[0])
+  else:
+    get_extrema()
+
+if __name__ == '__main__':
+  main()
+else:
+  print __name__

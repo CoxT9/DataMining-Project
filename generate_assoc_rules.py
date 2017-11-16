@@ -62,20 +62,32 @@ def generateRules(itemsetsFile, currItemsetLine): # String line of form (t, t, t
 
   return generatedRules
 
-totalRules = 0
-with open(sys.argv[1], 'r') as itemsets, open(sys.argv[2], 'w') as rules:
-  for line in itemsets:
-    if line[0] == "(":
-      currRules = generateRules(sys.argv[1], line)
-      totalRules += len(currRules)
-      for rule in currRules:
-        rules.write(
-          str((rule[0])) + 
-          " => " + 
-          str((rule[1])) + 
-          " : " + 
-          str(round(rule[2], 2)) +
-          "\n"
-        )
+def createRulesFile():
+  totalRules = 0
+  with open(sys.argv[1], 'r') as itemsets, open(sys.argv[2], 'w') as rules:
+    for line in itemsets:
+      if line[0] == "(":
+        currRules = generateRules(sys.argv[1], line)
+        totalRules += len(currRules)
+        for rule in currRules:
+          rules.write(
+            str((rule[0])) + 
+            " => " + 
+            str((rule[1])) + 
+            " : " + 
+            str(round(rule[2], 2)) +
+            "\n"
+          )
 
-print "Total rules generated:", totalRules
+  print "Total rules generated:", totalRules
+
+def main():
+  if len(sys.argv) != 3:
+    print "Usage: {0} <PatternsInput> <RulesOutput>".format(sys.argv[0])
+  else:
+    createRulesFile()
+
+if __name__ == '__main__':
+  main()
+else:
+  print __name__

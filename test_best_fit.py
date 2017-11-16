@@ -178,11 +178,12 @@ def getCoordCriteriaMatch(currCoord, currCoordList, compareCoordList, currCoordI
 def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, leftIndex, rightIndex):
   # See if the two coordinates are within threshold distance and bearing difference
   # These constants are subject to change wrt experiments
-  maxDistanceDiff = 350
-  maxBearingDiff = 30
+  maxDistanceDiff = 150
+  maxBearingDiff = 10
   match = False
   # First, check distance comparison
   distance = getLatLongDistance(leftCoord, rightCoord)
+
   if distance < maxDistanceDiff:
     # Distance within max. Check bearing difference
     # Only consider bearing when both coordLists are greater than 1
@@ -197,7 +198,7 @@ def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, le
       if rightIndex < len(rightCoordList)-1 else \
       getFinalBearing(rightCoordList[rightIndex-1], rightCoord)
 
-      match = abs(leftBearing, rightBearing) <= maxBearingDiff
+      match = abs(leftBearing - rightBearing) < maxBearingDiff
 
   return match
 
@@ -245,51 +246,74 @@ def compareResults(bestRuleConsequent, confirmRegions):
 
   return maxLen >= minMatchLen
 
-with open(sys.argv[1], 'r') as test_vectors, open(sys.argv[2], 'r') as rules:
-  correctCount = 0
-  totalCount = 0
-  for line in test_vectors:
-    regions = [str(region) for region in gatherDedupedRegionList(line)]
+def testRules():
+  with open(sys.argv[1], 'r') as test_vectors, open(sys.argv[2], 'r') as rules:
+    correctCount = 0
+    totalCount = 0
+    extrapCount = 0
 
-    # Now see the rules. Could also play with where the split happens
-    checkRegions = regions[:len(regions)/2]
-    confirmRegions = regions[len(regions)/2:]
+    for line in test_vectors:
+      regions = [str(region) for region in gatherDedupedRegionList(line)]
 
-    searchRounds = 0
-    complete = False
-    while not complete:
-      bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions)
-      if bestRuleScore == 0 and searchRounds < EXTRAPOLATION_LIMIT:
-        checkRegions.append(
-          getExtrapolatedRegion(
-            gatherCoordinateList(line), 
-            checkRegions,
-            searchRounds)
-          )
-        if len(checkRegions) > 1 and  checkRegions[-1] == checkRegions[-2]:
-          checkRegions = checkRegions[:-1]
-        searchRounds += 1
+      # Now see the rules. Could also play with where the split happens
+      checkRegions = regions[:3*len(regions)/4]
+      confirmRegions = regions[3*len(regions)/4:]
+
+      searchRounds = 0
+      complete = False
+      extrapWorks = False
+      while not complete:
+        bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions)
+        if bestRuleScore == 0 and searchRounds < EXTRAPOLATION_LIMIT:
+          checkRegions.append(
+            getExtrapolatedRegion(
+              gatherCoordinateList(line), 
+              checkRegions,
+              searchRounds)
+            )
+          if len(checkRegions) > 1 and checkRegions[-1] == checkRegions[-2]:
+            checkRegions = checkRegions[:-1]
+          searchRounds += 1
+        else:
+          if bestRuleScore > 0 and searchRounds > 0:
+            extrapWorks = True
+          complete = True
+
+      if searchRounds > 0:
+        print "Trajectory extrapolation was used"
+        print "Total extrapolations performed:", searchRounds
+        extrapCount += 1
+
+      print "The best-fit rule had a score of %f and its consequent is:" % bestRuleScore
+      print bestRuleConsequent
+      print "The actual final regions of the current trajectory is:"
+      print confirmRegions
+
+      predictionWithinRange = compareResults(bestRuleConsequent, confirmRegions)
+
+      if predictionWithinRange:
+        print "The prediction was correct (At least in terms of current analysis)"
+        correctCount += 1
       else:
-        complete = True
+        print "The prediction was incorrect (At least in terms of current analysis)"
+        
+      totalCount += 1
 
-    if searchRounds > 0:
-      print "Trajectory extrapolation was used"
-      print "Total extrapolations performed:", searchRounds
+    correctRatio = float(correctCount) / float(totalCount)
+    print "Correct to incorrect ratio was %f. This included trajectory extrapolation" % correctRatio
 
-    print "The best-fit rule had a score of %f and its consequent is:" % bestRuleScore
-    print bestRuleConsequent
-    print "The actual final regions of the current trajectory is:"
-    print confirmRegions
+    print "Trajectory is working:", extrapWorks
+    print extrapCount
+    print totalCount
+    print correctCount
 
-    predictionWithinRange = compareResults(bestRuleConsequent, confirmRegions)
+def main():
+  if len(sys.argv) != 3:
+    print "Usage: {0} <VectorsInput> <RulesInput>".format(sys.argv[0])
+  else:
+    testRules()
 
-    if predictionWithinRange:
-      print "The prediction was correct (At least in terms of current analysis)"
-      correctCount += 1
-    else:
-      print "The prediction was incorrect (At least in terms of current analysis)"
-      
-    totalCount += 1
-
-  correctRatio = float(correctCount) / float(totalCount)
-  print "Correct to incorrect ratio was %f. This included trajectory extrapolation" % correctRatio
+if __name__ == '__main__':
+  main()
+else:
+  print __name__
