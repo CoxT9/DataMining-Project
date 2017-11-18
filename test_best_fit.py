@@ -77,7 +77,20 @@ def getBestRule(rules, checkRegions):
   rules.seek(0)
   return bestRuleScore, bestRuleConsequent
 
-def getLatLongDistance(startCoord, endCoord):
+def getLatLongDistance(startCoord, endCoord, haversine=True):
+  if haversine:
+    return getHaversineDistance(startCoord, endCoord)
+  else:
+    return getEuclideanDistance(startCoord, endCoord)
+
+def getEuclideanDistance(startCoord, endCoord):
+  # lat, N/S, y, 0
+  # lon, W/E, x, 1 (negative)
+  # From Wikipedia:
+  # d(p, q) = sqrt( (q1-p1)**2 + (q2-p2)**2 )
+  return math.sqrt( abs( endCoord[1] + startCoord[1])**2 - abs(endCoord[0] - startCoord[0])**2 )
+
+def getHaversineDistance(startCoord, endCoord):
   # lat, N/S, y, 0
   # lon, W/E, x, 1 (negative)
   lon1, lat1, lon2, lat2 = map(math.radians, [startCoord[1], startCoord[0], endCoord[1], endCoord[0]])
@@ -302,7 +315,7 @@ def testRules():
     correctRatio = float(correctCount) / float(totalCount)
     print "Correct to incorrect ratio was %f. This included trajectory extrapolation" % correctRatio
 
-    print "Trajectory is working:", extrapWorks
+    print "Extrapolation is working:", extrapWorks
     print extrapCount
     print totalCount
     print correctCount
