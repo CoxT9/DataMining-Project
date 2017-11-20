@@ -149,19 +149,25 @@ def extrapolateCoordinate(startCoord, distance, bearing):
   endLatitude = math.degrees(endLatitude)
   return (endLatitude, endLongtitude)
 
-def getExtrapolatedRegion(coordinateList, checkRegions, searchRounds):
+def getExtrapolatedRegion(coordinateList, checkRegions, searchRounds, useManuscriptExtrap=False):
   lastCoordinate = coordinateList[-1]
   secondLastCoordinate = coordinateList[-2]
 
-  # Take the distance and direction from SL to L coordinates
-  distance = getLatLongDistance(secondLastCoordinate, lastCoordinate)
-  direction = getFinalBearing(secondLastCoordinate, lastCoordinate)
+  if useManuscriptExtrap:
+    # tp = {2latk-latk-1, 2lonk-lonk-1}
+    extrapLat = 2*lastCoordinate[0] - secondLastCoordinate[0]
+    extrapLon = (2*lastCoordinate[1]) - (secondLastCoordinate[1])
+    newPoint = (extrapLat, extrapLon)
+  else:
+    # Take the distance and direction from SL to L coordinates
+    distance = getLatLongDistance(secondLastCoordinate, lastCoordinate)
+    direction = getFinalBearing(secondLastCoordinate, lastCoordinate)
 
-  # Multiply distance by searchRounds+1 to account for level of extrapolation
-  distance = distance*(searchRounds+1)
-  # The coordinate from same distance and direction outward from L coordinate is the extrapolated one
-  newPoint = extrapolateCoordinate(lastCoordinate, distance, direction+180)
-  # Map this new coordinate to a region
+    # Multiply distance by searchRounds+1 to account for level of extrapolation
+    distance = distance*(searchRounds+1)
+    # The coordinate from same distance and direction outward from L coordinate is the extrapolated one
+    newPoint = extrapolateCoordinate(lastCoordinate, distance, direction+180)
+    # Map this new coordinate to a region
 
   return regionalize(newPoint)
 
@@ -282,7 +288,8 @@ def testRules():
             getExtrapolatedRegion(
               gatherCoordinateList(line), 
               checkRegions,
-              searchRounds)
+              searchRounds
+              )
             )
           if len(checkRegions) > 1 and checkRegions[-1] == checkRegions[-2]:
             checkRegions = checkRegions[:-1]
