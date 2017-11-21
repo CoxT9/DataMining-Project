@@ -62,12 +62,15 @@ def strToArray(arrayString):
   result = arrayString.replace("'", "").replace("[", "").replace("]", "").split(",")
   return result
 
-def getBestRule(rules, checkRegions):
+def getBestRule(rules, checkRegions, flex=False):
   bestRuleScore = 0
   bestRuleConsequent = []
   for rule in rules:
     antecedent, consequent, confidence = getAttributes(rule)
-    matchingLen = getMatchingLen(antecedent, checkRegions)
+    if flex:
+      matchingLen = getLongestSimilarSequence(antecedent, checkRegions)
+    else:
+      matchingLen = getMatchingLen(antecedent, checkRegions)
 
     if matchingLen > 0:
       ruleScore = confidence * (1 - math.exp( matchingLen*-1 ) )
@@ -213,7 +216,7 @@ def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, le
       if leftIndex < len(leftCoordList)-1 else \
       getFinalBearing(leftCoordList[leftIndex-1], leftCoord)
 
-      rightBearing = getFinalBearing(rightCoord, rightCoord[leftIndex+1]) \
+      rightBearing = getFinalBearing(rightCoord, rightCoordList[rightIndex+1]) \
       if rightIndex < len(rightCoordList)-1 else \
       getFinalBearing(rightCoordList[rightIndex-1], rightCoord)
 
@@ -225,45 +228,48 @@ def compareResults(bestRuleConsequent, confirmRegions):
   # Compare two lists of regions. 
   # If the two region lists have a small distance and similar bearing, the prediction is correct
 
-  # Do this, get "Characteristic coordinate" of each region
-  conseqCoordinates = map(characteristicCoordinate, [int(region) for region in bestRuleConsequent])
-  confirmCoordinates = map(characteristicCoordinate, [int(region) for region in confirmRegions])
-
   # Longest Congruent Subsequence of region pairs with similar bearing within certain distance. If meets minimum, consider correct
   # This is a lot like getMatchingLen except with fuzzier criteria
 
-  shorterLen = min(len(conseqCoordinates), len(confirmCoordinates))
+  shorterLen = min(len(bestRuleConsequent), len(confirmRegions))
   minMatchLen = shorterLen
 
-  maxLen = 0
+  maxLen = getLongestSimilarSequence(bestRuleConsequent, confirmRegions)
+
+  return maxLen >= minMatchLen
+
+def getLongestSimilarSequence(ruleRegions, testRegions):
+  resultLen = 0
+  ruleCoordinates = map(characteristicCoordinate, [int(region) for region in ruleRegions])
+  testCoordinates = map(characteristicCoordinate, [int(region) for region in testRegions])
 
   i = 0
   j = 0
-  while i < len(confirmCoordinates):
+  while i < len(testCoordinates):
     currLen = 0
-    currCoord = confirmCoordinates[i]
-    index = getCoordCriteriaMatch(currCoord, confirmCoordinates, conseqCoordinates, i)
+    currCoord = testCoordinates[i]
+    index = getCoordCriteriaMatch(currCoord, testCoordinates, ruleCoordinates, i)
     if index > -1:
       j = i
 
-      while j < len(confirmRegions) and index < len(conseqCoordinates) and \
+      while j < len(testRegions) and index < len(ruleCoordinates) and \
       coordsMatchCriteria(
-        confirmCoordinates[j], 
-        conseqCoordinates[index], 
-        confirmCoordinates, 
-        conseqCoordinates,
-        j, 
-        index,
+        testCoordinates[j],
+        ruleCoordinates[index],
+        testCoordinates,
+        ruleCoordinates,
+        j,
+        index
       ):
         j += 1
         index += 1
         currLen += 1
 
-    if currLen > maxLen:
-      maxLen = currLen
+    if currLen > resultLen:
+      resultLen = currLen
     i += 1
 
-  return maxLen >= minMatchLen
+  return resultLen
 
 def testRules():
   with open(sys.argv[1], 'r') as test_vectors, open(sys.argv[2], 'r') as rules:
@@ -271,6 +277,7 @@ def testRules():
     totalCount = 0
     extrapCount = 0
 
+    extrapWorks = False
     for line in test_vectors:
       regions = [str(region) for region in gatherDedupedRegionList(line)]
 
@@ -280,9 +287,8 @@ def testRules():
 
       searchRounds = 0
       complete = False
-      extrapWorks = False
       while not complete:
-        bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions)
+        bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions, flex=False)
         if bestRuleScore == 0 and searchRounds < EXTRAPOLATION_LIMIT:
           checkRegions.append(
             getExtrapolatedRegion(
