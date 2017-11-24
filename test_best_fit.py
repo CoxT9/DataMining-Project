@@ -17,6 +17,7 @@ from apriori_utils import *
 
 EXTRAPOLATION_LIMIT = 10
 EARTH_RADIUS = 6371
+MAX_MINIMUM_MATCH = 5
 
 def getAttributes(ruleLine):
   ruleLine = ruleLine.replace(" ", "")
@@ -91,7 +92,7 @@ def getEuclideanDistance(startCoord, endCoord):
   # lon, W/E, x, 1 (negative)
   # From Wikipedia:
   # d(p, q) = sqrt( (q1-p1)**2 + (q2-p2)**2 )
-  return math.sqrt( abs( endCoord[1] + startCoord[1])**2 - abs(endCoord[0] - startCoord[0])**2 )
+  return math.sqrt( abs( endCoord[1] - startCoord[1])**2 + abs(endCoord[0] - startCoord[0])**2 )
 
 def getHaversineDistance(startCoord, endCoord):
   # lat, N/S, y, 0
@@ -200,8 +201,8 @@ def getCoordCriteriaMatch(currCoord, currCoordList, compareCoordList, currCoordI
 def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, leftIndex, rightIndex):
   # See if the two coordinates are within threshold distance and bearing difference
   # These constants are subject to change wrt experiments
-  maxDistanceDiff = 150
-  maxBearingDiff = 10
+  maxDistanceDiff = 100
+  maxBearingDiff = 1
   match = False
   # First, check distance comparison
   distance = getLatLongDistance(leftCoord, rightCoord)
@@ -224,19 +225,47 @@ def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, le
 
   return match
 
-def compareResults(bestRuleConsequent, confirmRegions):
+def formerItemsWithinDistance(bestRuleConsequent, confirmRegions):
+  numConseq = len(bestRuleConsequent)
+  numConfrm = len(confirmRegions)
+
+  minLen = min(numConseq, numConfrm) \
+  if min(numConseq, numConfrm) < MAX_MINIMUM_MATCH \
+  else MAX_MINIMUM_MATCH
+
+  bestRuleConsequent = map(characteristicCoordinate, [int(region) for region in bestRuleConsequent[:minLen]])
+  confirmRegions = map(characteristicCoordinate, [int(region) for region in confirmRegions[:minLen]])
+  if minLen == 0:
+    return False
+  # Make sure all entries have distance <= 1
+  # euclidean distance or haversine distance?
+  distInRange = True
+  i = 0
+  while i < minLen and distInRange:
+
+    distInRange = getLatLongDistance(confirmRegions[i], bestRuleConsequent[i]) <= 300
+    i += 1
+
+  return distInRange
+
+def compareResults(bestRuleConsequent, confirmRegions, baseMethod=True):
   # Compare two lists of regions. 
   # If the two region lists have a small distance and similar bearing, the prediction is correct
 
   # Longest Congruent Subsequence of region pairs with similar bearing within certain distance. If meets minimum, consider correct
   # This is a lot like getMatchingLen except with fuzzier criteria
+  if baseMethod:
+    return formerItemsWithinDistance(bestRuleConsequent, confirmRegions)
+  else:
+    shorterLen = min(len(bestRuleConsequent), len(confirmRegions))
+    minMatchLen = shorterLen
 
-  shorterLen = min(len(bestRuleConsequent), len(confirmRegions))
-  minMatchLen = shorterLen
+    if minMatchLen == 0:
+      return False
 
-  maxLen = getLongestSimilarSequence(bestRuleConsequent, confirmRegions)
+    maxLen = getLongestSimilarSequence(bestRuleConsequent, confirmRegions)
 
-  return maxLen >= minMatchLen
+    return maxLen >= minMatchLen
 
 def getLongestSimilarSequence(ruleRegions, testRegions):
   resultLen = 0
