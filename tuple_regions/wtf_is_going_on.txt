@@ -1,0 +1,28 @@
+How the paper works:
+
+HTPDM (Motion)
+
+1. Mine historical traj (assoc rule: mtn patterns)
+2. Match curr traj to mtn patt
+2.1 if none: match prediction according to current mvmt
+
+Data: 1900-2008 atlantic hurricane data
+
+result:
+extraps: 57.5%
+all scc: 67%
+
+1) data preproc
+
+raw traj (atl):
+1900-2000 test
+2001-2008 train
+
+continuous pstn: need to discretize
+
+region div into sq areas.
+Traj -> Area Sequence
+
+t1 subtraj t2:
+	t2 contains t1
+

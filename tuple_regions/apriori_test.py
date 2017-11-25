@@ -28,12 +28,10 @@ MIN_SUP = 3
 # region and safe_incr code moved to util file
 
 def gather_new_frequent_items(resultTable, frequent_k_itemsets):
-  print "go"
   resultTable.append({})
   for key in frequent_k_itemsets:
     if frequent_k_itemsets[key] >= MIN_SUP:
       resultTable[-1][key] = frequent_k_itemsets[key] 
-  print "done--"
 
 def timeseries_candidate_generation(frequent_k_itemsets, chunk_size):
   # this is the candidate generation and pruning
@@ -44,10 +42,9 @@ def timeseries_candidate_generation(frequent_k_itemsets, chunk_size):
 
   # how to speed this way up
   # take advantage of the fact that the data is sorted now
-
+  frequent_k_itemsets_dict = { tuple(item):None for item in frequent_k_itemsets }
   candidates = []
   for curr_index, curr_item in enumerate(frequent_k_itemsets):
-    print curr_index
 
     compare_index = 0
     found = False
@@ -64,10 +61,11 @@ def timeseries_candidate_generation(frequent_k_itemsets, chunk_size):
       required_itemset_checks = itertools.combinations(new_candidate, chunk_size+1)
 
       #print "slower3?"
-      if all(item == curr_item or item == frequent_k_itemsets[compare_index] or item in frequent_k_itemsets for item in required_itemset_checks):
+      if all(item == curr_item or item == frequent_k_itemsets[compare_index] or tuple(item) in frequent_k_itemsets_dict for item in required_itemset_checks):
         candidates.append(new_candidate)
       compare_index += 1
-    print "out"
+
+
     # read my lips: no new comparisons!
 
   # candidates = []
@@ -130,6 +128,7 @@ def execute_apriori():
       level += 1
 
     else: # cand gen/prune
+      # scan
       # we are given C_k, , read table, add L_k to final result, generate/prune C_k+1, incr level
       # may want to optimize this too. faster search needed
       # gonna have to eat this one. no faster way it seems

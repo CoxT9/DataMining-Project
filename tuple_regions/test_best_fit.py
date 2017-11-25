@@ -250,7 +250,7 @@ def formerItemsWithinDistance(bestRuleConsequent, confirmRegions):
   distInRange = True
   i = 0
   while i < minLen and distInRange:
-    distInRange = getEuclideanDistance(confirmRegions[i], bestRuleConsequent[i]) <= 1
+    distInRange = int(getEuclideanDistance(confirmRegions[i], bestRuleConsequent[i])) <= 1
     i += 1
 
   return distInRange
