@@ -250,7 +250,7 @@ def formerItemsWithinDistance(bestRuleConsequent, confirmRegions):
   distInRange = True
   i = 0
   while i < minLen and distInRange:
-    distInRange = int(getEuclideanDistance(confirmRegions[i], bestRuleConsequent[i])) <= 1
+    distInRange = int(getHaversineDistance(confirmRegions[i], bestRuleConsequent[i])) <= 450
     i += 1
 
   return distInRange

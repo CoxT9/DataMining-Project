@@ -201,8 +201,8 @@ def getCoordCriteriaMatch(currCoord, currCoordList, compareCoordList, currCoordI
 def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, leftIndex, rightIndex):
   # See if the two coordinates are within threshold distance and bearing difference
   # These constants are subject to change wrt experiments
-  maxDistanceDiff = 100
-  maxBearingDiff = 1
+  maxDistanceDiff = 300
+  maxBearingDiff = 10
   match = False
   # First, check distance comparison
   distance = getLatLongDistance(leftCoord, rightCoord)
@@ -243,7 +243,7 @@ def formerItemsWithinDistance(bestRuleConsequent, confirmRegions):
   i = 0
   while i < minLen and distInRange:
 
-    distInRange = getLatLongDistance(confirmRegions[i], bestRuleConsequent[i]) <= 300
+    distInRange = getLatLongDistance(confirmRegions[i], bestRuleConsequent[i]) <= 600 # Something is really wrong with the block region model. This gets 10%.
     i += 1
 
   return distInRange
@@ -317,7 +317,7 @@ def testRules():
       searchRounds = 0
       complete = False
       while not complete:
-        bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions, flex=False)
+        bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions, flex=True)
         if bestRuleScore == 0 and searchRounds < EXTRAPOLATION_LIMIT:
           checkRegions.append(
             getExtrapolatedRegion(

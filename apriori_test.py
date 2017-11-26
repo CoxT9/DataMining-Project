@@ -23,7 +23,7 @@ result: x*10 + y = region #
 
 
 """
-MIN_SUP = 50
+MIN_SUP = 30
 
 # region and safe_incr code moved to util file
 

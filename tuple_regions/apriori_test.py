@@ -23,7 +23,7 @@ result: x*10 + y = region #
 
 # tuple regions are started but there is more work to do. First make sure multi-tuple-arrays are working correctly
 """
-MIN_SUP = 3
+MIN_SUP = 30
 
 # region and safe_incr code moved to util file
 
