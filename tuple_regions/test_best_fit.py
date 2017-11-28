@@ -310,6 +310,8 @@ def getLongestSimilarSequence(ruleRegions, testRegions):
   return resultLen
 
 def testRules():
+  ignoreExtrapolation = bool( int( sys.argv[3] ) )
+
   with open(sys.argv[1], 'r') as test_vectors, open(sys.argv[2], 'r') as rules:
     correctCount = 0
     totalCount = 0
@@ -326,6 +328,10 @@ def testRules():
       complete = False
       while not complete:
         bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions, flex=False)
+        if bestRuleScore == 0 and ignoreExtrapolation:
+          complete = True
+          totalCount -= 1
+          break
 
         if bestRuleScore == 0 and searchRounds < EXTRAPOLATION_LIMIT:
           checkRegions.append(
@@ -372,8 +378,8 @@ def testRules():
     print correctCount
 
 def main():
-  if len(sys.argv) != 3:
-    print "Usage: {0} <VectorsInput> <RulesInput>".format(sys.argv[0])
+  if len(sys.argv) != 4:
+    print "Usage: {0} <VectorsInput> <RulesInput> <IgnoreExtrapolation0/1>".format(sys.argv[0])
   else:
     testRules()
 

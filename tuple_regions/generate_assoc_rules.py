@@ -34,7 +34,7 @@ def getAntecedentSupport(itemsetsFile, searchLine):
     for line in itemsets:
       contents = line.split(":")
       if contents[0].strip() == searchLine:
-        result = int(contents[1].strip())
+        result = float(contents[1].strip())
 
   return result
 
@@ -44,7 +44,7 @@ def generateRules(itemsetsFile, currItemsetLine): # String line of form (t, t, t
   currItemsetLine = currItemsetLine.replace(" ", "")
   currItemsetParsed = currItemsetLine.split(":")
 
-  currItemsetSupport = int(currItemsetParsed[1])
+  currItemsetSupport = float(currItemsetParsed[1])
 
   # Change this to list of tuples
   currItemset = convertToTupleList(currItemsetParsed[0])

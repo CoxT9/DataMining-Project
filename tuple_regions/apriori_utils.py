@@ -57,7 +57,7 @@ def gatherDedupedRegionList(ruleLine):
 
   return dedupedRegions
 
-def safe_increment(table, key, value=1):
+def safe_increment(table, key, value=1.0):
   try:
     table[key] += value
   except KeyError:
