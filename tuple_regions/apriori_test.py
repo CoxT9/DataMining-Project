@@ -78,12 +78,12 @@ def gather_sublists(region_list):
   return result
 
 def init_support_weight(weightedData, weightedNominal):
-  w = WEIGHT_SCALE
+  w = 1.0
   if weightedData:
     if weightedNominal:
-      w /= WEIGHT_INTERVAL_NOMINAL
+      w = WEIGHT_SCALE / WEIGHT_INTERVAL_NOMINAL
     else:
-      w /= WEIGHT_INTERVAL_YEAR
+      w = WEIGHT_SCALE / WEIGHT_INTERVAL_YEAR
 
   return w
 
