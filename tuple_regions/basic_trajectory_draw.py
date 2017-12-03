@@ -20,6 +20,7 @@ def drawTrajectory():
   with open(sys.argv[1], 'r') as inputFile:
     i = 0
     for line in inputFile.readlines():
+      color = 'r'
       if i % fraction == 0: # Render 1 in fraction trajectories (nonzero)
         lineVector = line.split(' ')[1].split(",")[:-1]
 
@@ -32,8 +33,27 @@ def drawTrajectory():
           gisXCoords.append(int(newCoord[0]))
           gisYCoords.append(int(newCoord[1]))
 
-        m.plot(gisXCoords, gisYCoords, linewidth=0.5, color='r')
+        m.plot(gisXCoords, gisYCoords, linewidth=1.0, color=color)
       i += 1
+
+
+  # with open(sys.argv[4], 'r') as otherInput:
+  #   i = 0
+  #   for line in otherInput.readlines():
+  #     if True or i % fraction == 0: # Render 1 in fraction trajectories (nonzero)
+  #       lineVector = line.split(' ')[1].split(",")[:-1]
+
+  #       parsedVector = [item.replace("(", "").replace(")", "") for item in lineVector]
+  #       trajectoryVector = [ (float(item.split(":")[0]), float(item.split(":")[1])) for item in parsedVector]
+  #       gisXCoords = []
+  #       gisYCoords = []
+  #       for coord in trajectoryVector:
+  #         newCoord = m(coord[1], coord[0]) # Flip the input coordinates only on conversion
+  #         gisXCoords.append(int(newCoord[0]))
+  #         gisYCoords.append(int(newCoord[1]))
+
+  #       m.plot(gisXCoords, gisYCoords, linewidth=1.0, color='b')
+  #     i += 1
 
   m.drawcoastlines()
   m.drawcountries()
@@ -52,7 +72,7 @@ def drawTrajectory():
   plt.show()
 
 def main():
-  if len(sys.argv) != 4:
+  if False and len(sys.argv) != 4:
     print "Usage: {0} <VectorsInput> <FilterFraction> <RegionOverlaySwitch>".format(sys.argv[0])
   else:
     drawTrajectory()

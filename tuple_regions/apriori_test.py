@@ -4,29 +4,10 @@ import sys
 import itertools
 import time
 
-# Need to dedupe raw vectors
-
-# For regionalization, need to represent vectors as a scalar and modulo by their bucket
-# How to make vector into a scalar? Norm of vector? Eigenvalue?
-
-# Some of the data entries are impossible (latitude cannot exceed 180. BTW the negative indicates west)
-
-# From some analysis, height is from 7.2->81.0, width from -109.5->63. 73.8 H-H, 172.5 W-W
-
-# As a first pass on regionalization, consider the following:
-""" Suppose we want to group the map into a 10x10 grid
-The question becomes "what sector does my x,y belong to"
-answer:
-73.8 / 10 -> 7.38. So take candidate x / 7.38, truncate to int, that's the x-region. If on the line (modulo = 0), take -1
-ditto for y.
-result: x*10 + y = region #
-
-# tuple regions are started but there is more work to do. First make sure multi-tuple-arrays are working correctly
-"""
 WEIGHT_INTERVAL_NOMINAL = 756
 WEIGHT_INTERVAL_YEAR = 50
 HURRICANE_ID_PLACEHOLDER = "AL015555"
-WEIGHT_SCALE = 7.5
+WEIGHT_SCALE = 2.5
 # For weighted data:
 # Data can be weighted nominally or year-over-year
 # Careful! Right now these values are dependent on the specific training data input. This must be fixed
@@ -91,9 +72,9 @@ def check_weight_update(weightedNominal, w, currId, iterId):
   newId = currId
   newW = w
   if weightedNominal:
-    newW = min(w + (WEIGHT_SCALE / WEIGHT_INTERVAL_NOMINAL), 1)
+    newW = min(w + (WEIGHT_SCALE / WEIGHT_INTERVAL_NOMINAL), 2.5)
   elif currId[-4:] != iterId[-4:]:
-    newW = min(w + (WEIGHT_SCALE / WEIGHT_INTERVAL_YEAR), 1)
+    newW = min(w + (WEIGHT_SCALE / WEIGHT_INTERVAL_YEAR), 2.5)
     newId = iterId
 
   return newW, newId
@@ -130,7 +111,8 @@ def execute_apriori():
         for region in regions:
           safe_increment(freqs, region, w)
 
-        w, currId = check_weight_update(weightedNominal, w, currId, _id)
+        if weightedData:
+          w, currId = check_weight_update(weightedNominal, w, currId, _id)
 
       # we have all the singletons. Gather the frequent ones
       gather_new_frequent_items(final_itemsets, freqs, minimumsupport)
@@ -159,7 +141,8 @@ def execute_apriori():
           if candSet.issubset(regions):
             safe_increment(freqs, cand, w)
 
-        w, currId = check_weight_update(weightedNominal, w, currId, _id)
+        if weightedData:
+          w, currId = check_weight_update(weightedNominal, w, currId, _id)
 
       gather_new_frequent_items(final_itemsets, freqs, minimumsupport)
       print len(final_itemsets[-1].keys()), "Number of Frequent k itemsets"
@@ -177,6 +160,8 @@ def execute_apriori():
 
 def main():
   if len(sys.argv) != 6:
+    # Weight change every year: 0
+    # Weight change every index: 1
     print "Usage: {0} <VectorsInput> <PatternsOutput> <MinSupport> <Weighted0/1> <WeightedYearOrNominal0/1>".format(sys.argv[0])
   else:
     execute_apriori()

@@ -7,8 +7,6 @@ import sys
 import time
 import re
 
-MIN_CONF = 0.25
-
 def getRawRules(itemset):
   divider = len(itemset) - 1
   rules = [] # Antecedent, Consequent pairs
@@ -38,7 +36,7 @@ def getAntecedentSupport(itemsetsFile, searchLine):
 
   return result
 
-def generateRules(itemsetsFile, currItemsetLine): # String line of form (t, t, t) : s
+def generateRules(itemsetsFile, currItemsetLine, minconf=0.25): # String line of form (t, t, t) : s
   generatedRules = []
 
   currItemsetLine = currItemsetLine.replace(" ", "")
@@ -61,7 +59,7 @@ def generateRules(itemsetsFile, currItemsetLine): # String line of form (t, t, t
     antecedentSupport = getAntecedentSupport(itemsetsFile, searchLine)
 
     conf = float(currItemsetSupport) / float(antecedentSupport)
-    if conf >= MIN_CONF:
+    if conf >= minconf:
       generatedRules.append( (rule[0], rule[1], conf) )
 
   return generatedRules
@@ -83,11 +81,12 @@ def convertToTupleList(line):
 
 def createRulesFile():
   totalRules = 0
+  minconf = float(sys.argv[3])
   with open(sys.argv[1], 'r') as itemsets, open(sys.argv[2], 'w') as rules:
     for line in itemsets:
 
       if line[1] == "(": # Multi tuple pattern
-        currRules = generateRules(sys.argv[1], line)
+        currRules = generateRules(sys.argv[1], line, minconf)
         totalRules += len(currRules)
         for rule in currRules:
           rules.write(
@@ -102,8 +101,8 @@ def createRulesFile():
   print "Total rules generated:", totalRules
 
 def main():
-  if len(sys.argv) != 3:
-    print "Usage: {0} <PatternsInput> <RulesOutput>".format(sys.argv[0])
+  if len(sys.argv) != 4:
+    print "Usage: {0} <PatternsInput> <RulesOutput> <MinConf>".format(sys.argv[0])
   else:
     createRulesFile()
 

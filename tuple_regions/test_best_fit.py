@@ -75,6 +75,7 @@ def strToTupleArray(arrayString):
 def getBestRule(rules, checkRegions, flex=False):
   bestRuleScore = 0
   bestRuleConsequent = []
+  bestRule = []
   for rule in rules:
     antecedent, consequent, confidence = getAttributes(rule)
     if flex:
@@ -85,10 +86,11 @@ def getBestRule(rules, checkRegions, flex=False):
     if matchingLen > 0:
       ruleScore = confidence * (1 - math.exp( matchingLen*-1 ) )
       if ruleScore > bestRuleScore:
+        bestRule = antecedent
         bestRuleScore = ruleScore
         bestRuleConsequent = consequent
   rules.seek(0)
-  return bestRuleScore, bestRuleConsequent
+  return bestRule, bestRuleScore, bestRuleConsequent
 
 def getLatLongDistance(startCoord, endCoord, haversine=True):
   if haversine:
@@ -122,7 +124,7 @@ def getFinalBearing(startCoord, endCoord):
   # lon, W/E, x, 1 (negative)
 
   # Determine the direction of the trajectory at termination (for extrapolation and for similar-region comparison)
-  lon1, lat1, lon2, lat2 = map(math.radians, [startCoord[1], startCoord[0], endCoord[1], endCoord[0]])
+  lon1, lat1, lon2, lat2 = map(math.radians, [float(startCoord[1]), float(startCoord[0]), float(endCoord[1]), float(endCoord[0])])
 
   distLon = lon2 - lon1
 
@@ -208,7 +210,7 @@ def getCoordCriteriaMatch(currCoord, currCoordList, compareCoordList, currCoordI
 def coordsMatchCriteria(leftCoord, rightCoord, leftCoordList, rightCoordList, leftIndex, rightIndex):
   # See if the two coordinates are within threshold distance and bearing difference
   # These constants are subject to change wrt experiments
-  maxDistanceDiff = 300
+  maxDistanceDiff = 450
   maxBearingDiff = 10
   match = False
   # First, check distance comparison
@@ -327,7 +329,7 @@ def testRules():
       searchRounds = 0
       complete = False
       while not complete:
-        bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions, flex=False)
+        bestRule, bestRuleScore, bestRuleConsequent = getBestRule(rules, checkRegions, flex=False)
         if bestRuleScore == 0 and ignoreExtrapolation:
           complete = True
           totalCount -= 1
@@ -349,6 +351,12 @@ def testRules():
             extrapWorks = True
           complete = True
 
+      # if bestRuleScore > 0:
+      #     match_file.write(line)
+      # else:
+      #   print bestRuleScore
+      #   miss_file.write(line)
+
       if searchRounds > 0:
         print "Trajectory extrapolation was used"
         print "Total extrapolations performed:", searchRounds
@@ -363,10 +371,12 @@ def testRules():
 
       if predictionWithinRange:
         print "The prediction was correct (At least in terms of current analysis)"
+
         correctCount += 1
       else:
         print "The prediction was incorrect (At least in terms of current analysis)"
-        
+   #   print line
+   #   print bestRule
       totalCount += 1
 
     correctRatio = float(correctCount) / float(totalCount)
