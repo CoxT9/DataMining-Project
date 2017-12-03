@@ -57,7 +57,7 @@ The primary baseline of this work is \cite{major-hurricane-model}, which uses a 
 
 There are two categories of motivation behind this work. The first motivation of this work is to increase the total investigation completed in the hurricane trajectory prediction subdiscipline. Little research effort has been allocated to this particular problem space of high economic, and social impact. The authors expect this work to constitute a growing effort by academic and government researchers to improve existing methods of hurricane trajectory prediction in the interest of public safety and economic stability.
 
-The second motivation behind this work is the specific goal of improving the correctness ratio in the current standard data mining model for hurricane trajectory prediction. As previously described, HTPDM had a best case trajectory prediction correctness ratio of 65\%. This means that of all testing trajectory for a which a matching rule was successfully produced, 65\% of such matches were correct predictions. When HTPDM accounts for testing trajectories for which no rule could be matched, the correctness ratio decreases by 7.5\% to a final value of 57.5\% correctness. This decrease in accuracy is expected at some hurricane trajectories are outliers which cannot be predicted by frequent pattern mining, as will be discussed further in this work.
+The second motivation behind this work is the specific goal of improving the correctness ratio in the current standard data mining model for hurricane trajectory prediction. As previously described, HTPDM had a best case trajectory prediction correctness ratio of 65\%. This means that of all testing trajectory for a which a matching rule was successfully produced, 65\% of such matches were correct predictions. When HTPDM accounts for testing trajectories for which no rule could be matched, the correctness ratio decreases by 7.5\% to a final value of 57.5\% correctness. This decrease in accuracy is expected as some hurricane trajectories are outliers which cannot be predicted by frequent pattern mining, as will be discussed further in this work.
 
 The motivation of improving the correctness ratio in the model encompasses the challenges of improving the best-case correctness ratio (the correctness ratio when ignoring rule-miss incidents) and the worst-case correctness ratio (the correctness ratio when accounting for rule-miss incidents). To resolve the motivations of this work, a series of improvement strategies are proposed as applications to the current hurricane trajectory prediction model based on AprioriAll. In general, these strategies seek to improve the realism of the prediction model, reduce historical factors which may negatively affect the model's correctness reatio, and favor recent hurricane trajectory trends which are likely to be reflected in current and future hurricane patterns.
 
@@ -105,7 +105,23 @@ The above table shows an example of how the trajectory database is structured af
 
 \subsection{Region Discretization}
 
-% Put some visualization here and cite matplotlib
+Atlantic hurricane trajectories cover a very large span of distance, in some cases travelling more than 10,000 kilometers from first to last advisory \cite{hurricane-distances}. As such, the granularity of such trajectories is too small to effectively derive any meaningful patterns \cite{major-hurricane-model}. Thus, this work chooses to transform the hurricane trajectories into coarser paths, sacrificing some precision to generate more frequent trajectory patterns over a more general area \cite{ransform-hurricanes-for-discretization}. 
+
+In HTPDM and WARD-HTP, hurricane trajectory coordinates are scaled by a constant value of 5 and cast to integer values. The below figures show the difference of hurricane trajectory values before and after coordinate discretization. The python library matplotlib was used to generate images overlaying hurricane trajectories over a map of the Atlantic seaboard and will be used extensively throughout this paper \cite{matplotlib}. 
+
+\begin{figure}[h]
+\caption{Hurricane Trajectory Paths}
+\centering
+\includegraphics[scale=1.0]{hurricane-trajectory-raw-diagram}
+\end{figure}
+
+\begin{figure}[h]
+\caption{Hurricane Trajectory Paths With Discretized Coordinates}
+\centering
+\includegraphics[scale=1.0]{hurricane-trajectory-discretized-diagram}
+\end{figure}
+
+As can be observed in Fig. 3, coordinate discretization clamps hurricane trajectory points into larger discrete regions. As previously described, hurricane coordinates are tracked by latitude and longitude pairs, represented in degrees from the equator and the prime meridian, respectively. One degree of latitude is roughly equivalent to 111 km, however the distance of one degree of longitude is variable \cite{lat-long-distance}. This results in hurricane coordinates being roughly bounded in discrete regions of 5 degrees, or 555 km.
 
 \subsection{Trajectory Matching}
 
@@ -136,7 +152,10 @@ The above table shows an example of how the trajectory database is structured af
 \bibitem{hurricane-forecasting-1}
 \bibitem{hurricane-forecasting-2}
 \bibitem{typhoon-clustering}
-%\bibitem{matplotlib}
+\bibitem{hurricane-distances}
+\bibitem{transform-hurricanes-for-discretization}
+\bibitem{matplotlib}
+\bibitem{lat-long-distance}
 
 
 
