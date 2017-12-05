@@ -63,10 +63,10 @@ def drawTrajectory():
   m.drawmeridians(np.arange(-100,0,20),labels=[0,0,0,1])
 
   if showRegions:
-    div = 80/float(LONGITUDE_DIVISIONS)
-    m.drawmeridians(np.arange(-100, -20, div),dashes=[1,0],color='b')
-    div2 = 50/float(LATITUDE_DIVISIONS)
-    m.drawparallels(np.arange(0, 50, div2),dashes=[1,0],color='b')
+    div = 5
+    m.drawmeridians(np.arange(-140, -20, div),dashes=[1,0],color='b')
+    div2 = 5
+    m.drawparallels(np.arange(0, 70, div2),dashes=[1,0],color='b')
 
   plt.title('Atlantic Hurricane Tracks')
   plt.show()
