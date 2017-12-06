@@ -97,7 +97,7 @@ The hurricane trajectory model in this work does not implement step (1), as the 
 \includegraphics[scale=1.0]{hurricane-table-sample}
 \end{figure}
 
-Figure (1) shows an example of how the trajectory database is structured after the mapping preprocessing step. Only two dimensions are needed in the database, being the hurricane ID and the sequence of latitude-longtitude coordinates. All hurricanes in HURDAT2 have an ID corresponding to the location (the Atlantic), the index ordered by appearance in the hurricane year, and the year itself. For example, hurricane Katrina of 2005 corresponds to AL122005. The preprocessing step proposed is executed exactly once, allowing the hurricane database to be mined without the initial grouping and mapping stage.
+Figure (1) shows an example of how the trajectory database is structured after the mapping preprocessing step. Only two dimensions are needed in the database, being the hurricane ID and the sequence of latitude-longtitude coordinates. All hurricanes in HURDAT2 have an ID corresponding to the location (i.e. the Atlantic), the index ordered by appearance in the hurricane year, and the year itself. For example, hurricane Katrina of year 2005 corresponds to AL122005. The preprocessing step proposed is executed exactly once, allowing the hurricane database to be mined without the initial grouping and mapping stage.
 
 \subsubsection{Sequence Generation}
 
@@ -195,9 +195,24 @@ Despite establishing a convincing initial start point, the best-case correctness
 
 \section{Solution}
 
-In order to improve the correctness ratio of datamining-based hurricane trajectory prediction, this work identifies and explores three opportunities for worst-case and best-case ratio improvement. The opportunities for improvement are the improvement of realism, reduction of historical impact, and favorability towards recent hurricane trends. Therefore, the opportunities for improvement are realized by three unique dimensions. These dimensions are the use of a distance formula designed for spherical coordinate systems, the Haversine Distance Formula, the use of weighted training data when executing the modified variant of AprioriAll, and the modification of the training data to only use historical trajectories from 1950 to 2000. The implementation of these three dimensions results in a new hurricane trajectory prediction model dubbed WARD-HTP (Weighted-Asset, Realistic-Distance Hurricane Trajectory Predictor). The combined contributions of WARD-HTP are expected to result in improvements to the best-case and worst-case correctness ratios.
+In order to improve the correctness ratio of datamining-based hurricane trajectory prediction, this work identifies and explores three opportunities for worst-case and best-case ratio refinement. The opportunities identified are the introduction of more realism in calculation formulas, reduction of historical impact on data used, and favorability towards recent hurricane trends. Therefore, the opportunities for improvement are realized by three unique dimensions. These dimensions are the use of a distance formula designed for spherical coordinate systems, the Haversine Distance Formula, the use of weighted training data when executing the modified variant of AprioriAll, and the modification of the training data to only use historical trajectories from 1950 to 2000. The implementation of these three dimensions results in a new hurricane trajectory prediction model dubbed WARD-HTP (Weighted-Asset, Realistic-Distance Hurricane Trajectory Predictor). The combined contributions of WARD-HTP are expected to result in improvements to the best-case and worst-case correctness ratios.
 
 \subsection{Haversine Distance Formula}
+
+Accurate distance measurement is a critical task in hurricane trajectory prediction. Pattern matching strategies in the proposed hurricane trajectory prediction model depend on coherent distance measurements between real-world spatial points. Consider the following prediction-correctness evaluation method proposed by \cite{major-hurricane-model}. To determine whether a trajectory prediction is correct, the distance between the first p points of the predicted and actual trajectories is compared against a defined maximum, where p is the minimum length of the two trajectories. If all p pairs of points fit within the maximum distance, the trajectory prediction is considered correct.
+
+Two different distance measurement formulas are examined in this work for use in the evaluation method described. This work compares the Euclidean distance formula against the Haversine distance formula. The Euclidean distance formula (as used in \cite{major-hurricane-model}) is designed to determine the unit distance between two N dimensional points in a straight line. In the proposed model, units correspond to degrees of latitude and longitude. In contrast, the Haversine formula is designed to determine the kilometers between two latitude-longitude points over a large sphere (such as the earth). For this reason, the Haversine formula is anticipated to provide a more accurate definition of distance between recorded hurricane points. When used in this work, the Euclidean distance formula is evaluated with two dimensions, corresponding respectively to latitude and longitude. The two formulas, denoted D_eucl and D_havr are defined as follows:
+
+\begin{eqnarray*}
+D_eucl(p1, p2) = sqrt( (lat_p2 - lat_p1)^2 + (lon_p2 - lon_p1)^2 )
+\end{eqnarray*}
+
+% TODO: paste the full haversine formula here
+\begin{eqnarray*}
+D_havr(p1, p2) = 
+\end{eqnarray*}
+
+To compare the prediction accuracy between the two proposed distance formulas, a sample execution of the hurricane trajectory prediction model is executed with identical variables, except for the difference in distance evaluation. The distance formulas are interchanged in the prediction correctness checking step of the model, described previously in this section. When using the Euclidean formula, the distance threshold is 1. This corresponds to the distance threshold proposed in \cite{major-hurricane-model}. When the Haversine formula is employed, the maximal distance is varied from 300 to 450 km. This value corresponds to slightly less than approximately one average hurricane-diameter. Since the average hurricane diameter is between 333 and 670 km \cite{hurricane-distances}, two points are considered to be within the distance threshold if they are less than one average hurricane-diameter apart. This size was decided upon because of the coordinate discretization method employed in the work of \cite{major-hurricane-model}, which as discussed in Region Discretization section, scales all hurricane coordinates by a constant value of 5. Therefore, the euclidean distance threshold of 1 in the discretized coordinate system corresponds to a square region approximately equal to 500 km by 500 km. As such, the maximal distance ranges used for the Haversine formula are much less than used in the Euclidean formula. The expected outcome of this experiment is to receive more granular results using the Haversine formula compared to the Euclidean formula.
 
 \subsection{Weighted Training Data}
 
@@ -206,6 +221,21 @@ In order to improve the correctness ratio of datamining-based hurricane trajecto
 \section{Experimental Setup}
 
 \section{Experimental Results}
+
+\subsection{Haversine Distance Formula}
+
+As can be observed below in Figure (), between the Euclidean and Haversine distance formulas, the Haversine formula with a distance threshold of 450 km delivers a increased correctness rate of 38.49\%, corresponding to 74.77\% compared to 36.28\% correctness when the Euclidean formula was employed. It is noted however that a distance threshold of 300 km (representing the lower bound of average hurricane sizes) results in an increased correctness rate of 19.91\% over the Euclidean formula, but remains a lower correctness rate compared to a Haversine distance of 450 km. The realistic nature of the Haversine formula in conjunction with its corresponding maximal distance threshold is able to provide a higher rate of accurate predictions compared to the Euclidean distance formula, which is not designed for non-euclidean coordinate systems such as coordinate systems over spheres.
+
+% TODO: make Excel charts based on data from the Doc, paste them here
+\begin{figure}[ht]
+\caption{Comparative Execution of Euclidean and Haversine Distance Formulas}
+\centering
+%\includegraphics[scale=1.0]{ <TABLE NAME HERE> }
+\end{figure}
+
+\subsection{Weighted Training Data}
+
+\subsection{Training Data Year Interval}
 
 \section{Conclusions and Future Work} % what we found:
 
