@@ -5,7 +5,7 @@
 \usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
 
 \usepackage{graphicx}
-\usepackage{textcomp}
+%\usepackage{textcomp}
 \graphicspath{ {images/} }
 
 \hyphenation{op-tical net-works semi-conduc-tor}
@@ -91,13 +91,13 @@ In step (1) of AprioriAll, a given transaction database \textit{D} is grouped by
 
 The hurricane trajectory model in this work does not implement step (1), as the training data from HURDAT2 was instead translated into a $\langle HurricaneID, CoordinateSequence\rangle$ database as a preprocessing step before any aspects of the model are executed. By directly translating the data instead of processing it with AprioriAll, all trajectories in the original database are preserved. This includes coordinates which may ultimately be infrequent. The sequential mapping of AprioriAll is performed as a preprocessing step so that the database used in the prediction model will always consist of hurricanes and their coordinate sequences. This allows the prepared (mapped) database to be mined directly without the need to complete the mapping step every time AprioriAll is executed.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \caption{Sample of mapped Hurricane-Coordinates database}
 \centering
 \includegraphics[scale=1.0]{hurricane-table-sample}
 \end{figure}
 
-The above table shows an example of how the trajectory database is structured after the mapping preprocessing step. Only two dimensions are needed in the database, being the hurricane ID and the sequence of latitude-longtitude coordinates. All hurricanes in HURDAT2 have an ID corresponding to the location (the Atlantic), the index ordered by appearance in the hurricane year, and the year itself. For example, hurricane Katrina of 2005 corresponds to AL122005. The preprocessing step proposed is executed exactly once, allowing the hurricane database to be mined without the initial grouping and mapping stage.
+Figure (1) shows an example of how the trajectory database is structured after the mapping preprocessing step. Only two dimensions are needed in the database, being the hurricane ID and the sequence of latitude-longtitude coordinates. All hurricanes in HURDAT2 have an ID corresponding to the location (the Atlantic), the index ordered by appearance in the hurricane year, and the year itself. For example, hurricane Katrina of 2005 corresponds to AL122005. The preprocessing step proposed is executed exactly once, allowing the hurricane database to be mined without the initial grouping and mapping stage.
 
 \subsubsection{Sequence Generation}
 
@@ -144,7 +144,7 @@ In HTPDM and WARD-HTP, recorded hurricane coordinates are discretized into appro
 \includegraphics[scale=0.55]{Merged-Trajectory-Comparison}
 \end{figure}
 
-Consider figures (2) and (3) shown above, generated using a sample of the recrded hurricane trajectories in HURDAT2 with the visualization tool Matplotlib \cite{matplotlib}. As shown in the figures, region discretization organizes continuous hurricane coordinate sequences into discrete region sequences of approximately uniform size and square shape. A discretization block size of 5 is selected in HTPDM and is replicated in WARD-HTP. A block size of 5 corresponds approximately to a real-world block dimension of 500km by 500km. The block dimension size is approximate because the mapping between coordinate degrees and kilometers is imprecise, and is dependent on location in the case of longtitudal points \cite{lat-long-distance}. The approximate size of 500km is similar to the average hurricane total diameter \cite{hurricane-distances}, permitting the coarse-grain expression of hurricane trajectories without undue loss in precision.
+Consider figure (2), generated using a sample of the recrded hurricane trajectories in HURDAT2 with the visualization tool Matplotlib \cite{matplotlib}. As shown in the pair of images, region discretization organizes continuous hurricane coordinate sequences into discrete region sequences of approximately uniform size and square shape. A discretization block size of 5 is selected in HTPDM and is replicated in WARD-HTP. A block size of 5 corresponds approximately to a real-world block dimension of 500km by 500km. The block dimension size is approximate because the mapping between coordinate degrees and kilometers is imprecise, and is dependent on location in the case of longtitudal points \cite{lat-long-distance}. The approximate size of 500km is similar to the average hurricane total diameter \cite{hurricane-distances}, permitting the coarse-grain expression of hurricane trajectories without undue loss in precision.
 
 All aspects of hurricane trajectory prediction with data mining depend on region discretization. Frequent trajectory patterns and their resulting trajectory predictions are expressed in terms of the regions where a given hurricane is expected to appear. The process of region discretization allows for hurricane coordinate trajectories to be scaled down, allowing the regionalized coordinates to be treated as a simplified coordinate system in subsequent aspects of the prediction model.
 
@@ -179,12 +179,25 @@ The pattern matching for rule consequents has some differences compared to antec
   \end{algorithmic}
 \end{algorithm}
 
-% this may need some editing
+The hurricane trajecory prediction model based on data mining as originally proposed in \cite{major-hurricane-model} implements all aspects of the problem domain described. Modified AprioriAll, downscaled region discretization and pattern matching with respect to association rule antecedents and consequents are respectively employed by HTPDM in order to develop an effective system for predicting future hurricane trajectories. Based on Atlantic hurricane trajectory data from 1900 to 2008, the model generates a best-case correctness ratio of 65\% and a worst-case ratio of 57.5\%. The training data used in the original model consists of trajectories from 1900 to 2000, with testing data supplied by trajectories from 2001 to 2008. At a high level, the model is developed and tested by following the steps below, using all implementation strategies discussed. 
 
+% Model formal explanation could be better. Maybe do pseudocode
+
+\begin{enumerate}
+\item Generate interesting trajectory rules from AprioriAll
+\item Determine matching rule for incoming trajectory 
+\item Check if the matched rule's consequent points are sufficiently close
+\end{enumerate}
+
+The differentiation between the model's best and worst-case hit rates is dependent on the ability of an incoming test trajectory to be matched with a trajectory association rule. As described in the pattern matching stage, the initial subtrajectory of an incoming trajectory is compared against all interesting rules to determine a best-fit match. If no such match is found, HTPDM attempts to extrapolate a future point of the initial trajectory, using the extrapolated point as a new option for determing a rule antecedent match. When accounting for all tested trajectories, including those which were matched to a rule as a result of trajectory extrapolation, the correctness ratio was 57.5\%. Therefore, the best case correctness ratio of HTPDM is the ratio which ignores all test trajectories which did not match with any rules, resulting in a final value of 65\%.
+
+Despite establishing a convincing initial start point, the best-case correctness ratio of 65\% may be too low for HTPDM to be considered realiable in the real-world. This is problematic for those interested in hurricane trajectory prediction as a model with only 65\% accuracy may not be able to deliver crucial insight into hurricane trajectory prediction, particularly with respect to landfall location prediction. Both correctness ratios given must be improved in order for data mining to be considered a reliable approach to predicting the trajectories of future hurricanes.
 
 \section{Solution}
 
-\subsection{Haversine Formula}
+In order to improve the correctness ratio of datamining-based hurricane trajectory prediction, this work identifies and explores three opportunities for worst-case and best-case ratio improvement. The opportunities for improvement are the improvement of realism, reduction of historical impact, and favorability towards recent hurricane trends. Therefore, the opportunities for improvement are realized by three unique dimensions. These dimensions are the use of a distance formula designed for spherical coordinate systems, the Haversine Distance Formula, the use of weighted training data when executing the modified variant of AprioriAll, and the modification of the training data to only use historical trajectories from 1950 to 2000. The implementation of these three dimensions results in a new hurricane trajectory prediction model dubbed WARD-HTP (Weighted-Asset, Realistic-Distance Hurricane Trajectory Predictor). The combined contributions of WARD-HTP are expected to result in improvements to the best-case and worst-case correctness ratios.
+
+\subsection{Haversine Distance Formula}
 
 \subsection{Weighted Training Data}
 
@@ -229,3 +242,4 @@ The pattern matching for rule consequents has some differences compared to antec
 % More non-text assets?
 % We have done a good job describing the problem space but we need to explain what we problems __are__
 % ie: why is there a solution
+% we will need to re-read the paper and keep an eye out for sections that suffer from scope creep. Problem description first comes to mind.
