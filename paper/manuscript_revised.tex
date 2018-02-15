@@ -132,13 +132,19 @@ This subsection covers problems related to the discretization of $\langle Latitu
 In HTPDM and WARD-HTP, recorded hurricane coordinates are discretized into approximately square blocks of a specific size, expressed in degrees. Consider the third row of coordinates shown in figure (1): (12.5:-37.5), (13.0:-39.0), (13.5:-40.5). Mapping this coordinate sequence to a discretization block of size 5, the new trajectory becomes (2:-7), (2:-7), (2:-8). Duplicate coordinates are not counted, so the trajectory ultimately reduces to (2:-7), (2:-8). Note that the degree-size of the discretization block is expressed as an integer, which means that all coordinates are mapped to their lowest divisor relative to the discretization size. This enables the coarse-grained mapping of coordinates to their corresponding region block. 
 
 % Figures 2 and 3: Trajectories without and with region overlay
+% \begin{figure}[htp]
+% \caption{Hurricane Trajectory Paths Without and With Regionalization}
+% \centering
+% \includegraphics[scale=0.55]{Merged-Trajectory-Comparison}
+% \end{figure}
+
 \begin{figure}[htp]
 \caption{Hurricane Trajectory Paths Without and With Regionalization}
 \centering
-\includegraphics[scale=0.55]{Merged-Trajectory-Comparison}
+\includegraphics[scale=0.55]{Trajectories-Proper-Range-Regions-NoRegions-Combined}
 \end{figure}
 
-Consider figure (2), generated using a sample of the recorded hurricane trajectories in HURDAT2 with the visualization tool Matplotlib \cite{matplotlib}. As shown in the pair of images, region discretization organizes continuous hurricane coordinate sequences into discrete region sequences of approximately uniform size and square shape. A discretization block size of 5 is selected in HTPDM and is replicated in WARD-HTP. A block size of 5 corresponds approximately to a real-world block dimension of 500km by 500km. The block dimension size is approximate because the mapping between coordinate degrees and kilometres is imprecise, and is dependent on location in the case of longitudinal points \cite{lat-long-distance}. The approximate size of 500km is similar to the average hurricane total diameter \cite{hurricane-distances}, permitting the coarse-grain expression of hurricane trajectories without undue loss in precision.
+Consider figure (2), generated using a sample of the recorded hurricane trajectories in HURDAT2 with the visualization tool Matplotlib \cite{matplotlib}. The region of interest is captured within the emboldened sections of the figures. As shown in the pair of images, region discretization organizes continuous hurricane coordinate sequences into discrete region sequences of approximately uniform size and square shape. A discretization block size of 5 is selected in HTPDM and is replicated in WARD-HTP. A block size of 5 corresponds approximately to a real-world block dimension of 500km by 500km. The block dimension size is approximate because the mapping between coordinate degrees and kilometres is imprecise, and is dependent on location in the case of longitudinal points \cite{lat-long-distance}. The approximate size of 500km is similar to the average hurricane total diameter \cite{hurricane-distances}, permitting the coarse-grain expression of hurricane trajectories without undue loss in precision.
 
 All aspects of hurricane trajectory prediction with data mining depend on region discretization. Frequent trajectory patterns and their resulting trajectory predictions are expressed in terms of the regions where a given hurricane is expected to appear. The process of region discretization scales all hurricane coordinate trajectories downward, allowing the regionalized coordinates to be treated as a simplified coordinate system in subsequent aspects of the prediction model.
 
@@ -251,10 +257,10 @@ Apart from the three dimensions of improvement outlined, one of the key differen
 \begin{figure}[htp]
 \caption{Non-Matchable Hurricane Trajectory Paths}
 \centering
-\includegraphics[scale=0.6]{Rule-Miss-Diagram}
+\includegraphics[scale=0.6]{Trajectories-Proper-Range-Show-Miss}
 \end{figure}
 
-Figure (3) illustrates the characteristics of trajectories which were not able to match with any interesting rules. The particular diagram was generated from training data ranging from 1950 to 2000, and testing data from 2001 to 2015. Red trajectories represent a subset of the training data, while blue trajectories are those which did not match with any association rules. It is visually clear to see that non-matching trajectories were highly dissimilar from training data trajectories. As a result, no amount of point extrapolation would be able to result in a reliable terminal trajectory prediction. Some of the non-matching trajectories appear to align with training trajectories, but are moving in an opposite direction. Therefore, any points that matched such trajectories would also not provide a reliable result.
+Figure (3) illustrates the characteristics of trajectories which were not able to match with any interesting rules. As seen in figure (2), the area of interest to this work is captured within the bold area. The particular diagram was generated from training data ranging from 1950 to 2000, and testing data from 2001 to 2015. Red trajectories represent a subset of the training data, while blue trajectories are those which did not match with any association rules. It is visually clear to see that non-matching trajectories were highly dissimilar from training data trajectories. As a result, no amount of point extrapolation would be able to provide a reliable terminal trajectory prediction. Some of the non-matching trajectories appear to align with training trajectories, but are moving in an opposite direction. Therefore, any points that matched such trajectories would also not provide a reliable result.
 
 \section{Experimental Results}
 
