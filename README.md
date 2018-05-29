@@ -15,9 +15,12 @@ To execute the Hurricane Prediction Model, complete the following:
 
 In terms of a shell, execute the following:
 
-$ python apriori_test.py vectors_training.txt patterns.txt
-$ python generate_assoc_rules.txt patterns.txt rules.txt
-$ python test_best_fit.py rules.txt vectors_testing.txt > results.txt
+$> python apriori_test.py vectors_training.txt patterns.txt
+
+$> python generate_assoc_rules.txt patterns.txt rules.txt
+
+$> python test_best_fit.py rules.txt vectors_testing.txt > results.txt
+
 
 Other scripts in this repository:
 - apirori_utils.py: Utility methods and constants
