@@ -1,6 +1,6 @@
 This is a repository for COMP 4710 - Introduction to Data Mining. Fall 2017.
 
-This repository captures the work completed for the course project. The project undertaken is "Evaluating strategies for improved accuracy in hurricane trajectory prediction"
+This repository captures the work completed for the course project. The project undertaken is "Accurate Hurricane Trajectory Prediction"
 
 Accuracy improvement strategies to be evaluated include:
 - Best-Rule-Fit function which accounts for absence of matching rule (closest fit)
@@ -28,4 +28,6 @@ Other scripts in this repository:
 
 - generate_coord_vectors.py: A simple script to parse the raw atlantic_storms.csv file into a datafile of storm IDs with their coordinate vectors/trajectories.
 
-Project members: Jasmin Bissonnette, Caden Marofke, Taylor Cox
+Project members: Caden Marofke, Taylor Cox (professor: Dr. C. K. Leung)
+
+If you use any of this work, please cite: Taylor S. Cox, Calvin S.H. Hoi, Carson K. Leung, Caden R. Marofke: An accurate model for hurricane trajectory prediction. IEEE COMPSAC (BIOT) 2018 (6)
